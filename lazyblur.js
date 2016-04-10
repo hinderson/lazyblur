@@ -28,6 +28,9 @@
 }(window, function factory (window, utils, pubsub, stackblur) {
     'use strict';
 
+    // Constants
+    var BLUR_AMOUNT = 40;
+
     // Unloaded items
     var unloadedItems = [];
 
@@ -130,7 +133,7 @@
         // Wait for thumb to load completely
         thumb.onload = function ( ) {
             canvas.getContext('2d').drawImage(thumb, 0, 0, canvas.width, canvas.height);
-            stackblur.canvasRGB(canvas, 0, 0, canvas.width, canvas.height, 80);
+            stackblur.canvasRGB(canvas, 0, 0, canvas.width, canvas.height, BLUR_AMOUNT);
             pubsub.publish('placeholderCreated', item);
         };
 
@@ -145,6 +148,10 @@
 
     var lazyBlur = function (elems, options) {
         if (!elems) return;
+
+        if (options) {
+            BLUR_AMOUNT = options.blur;
+        }
 
         // Export event emitter
         this.on = pubsub.subscribe;
