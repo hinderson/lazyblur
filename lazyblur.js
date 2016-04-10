@@ -93,6 +93,9 @@
         // Construct media element
         var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();
 
+        // Add loading class
+        item.classList.add('loading-media');
+
         // Construct attributes
         for (var prop in attributes) {
             mediaElem.setAttribute(prop, attributes[prop]);
@@ -105,6 +108,7 @@
             mediaElem.addEventListener(transitionEvent, removeHint);
 
             setTimeout(function ( ) {
+                item.classList.remove('loading-media');
                 item.classList.add('media-loaded');
             }, 100);
 
