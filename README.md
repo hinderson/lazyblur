@@ -8,7 +8,6 @@ Progressively load media (images, video) with a blur effect. Loads the media whe
 .progressive-media {
     position: relative;
     overflow: hidden;
-    background: #dedede;
 
     canvas {
         display: block;
@@ -17,14 +16,12 @@ Progressively load media (images, video) with a blur effect. Loads the media whe
         left: 0;
         width: 100%;
         height: 100%;
-        max-width: 100%;
         visibility: visible;
         opacity: 1;
     }
 
     .thumb {
-        visibility: hidden;
-        opacity: 0;
+        display: none;
     }
 
     .media {
@@ -59,6 +56,7 @@ Progressively load media (images, video) with a blur effect. Loads the media whe
 ### Image
 ```
 <div class="progressive-media" data-attributes='{ "srcset": "{{ realImageSrcSet }}", "sizes": "100vw", "alt": "", "data-object-fit": "cover" }'>
+    <div style="padding-bottom: {{ (realImageHeight / realImageWidth) * 100 }}%;">
     <img src="{{ microSrc }}" crossorigin="anonymous" aria-hidden="true" class="thumb" alt="">
     <canvas width="{{ realImageWidth }}" height="{{ realImageHeight }}" data-object-fit="cover"></canvas>
     <noscript>
