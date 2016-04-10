@@ -1,0 +1,25 @@
+{
+  "name": "lazyblur",
+  "version": "1.0.0",
+  "description": "Progressively load media (images, video) with a blur effect",
+  "main": "lazyblur.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hinderson/lazyblur.git"
+  },
+  "keywords": [
+    "blur",
+    "lazyload",
+    "progressive",
+    "media"
+  ],
+  "author": "Mattias Hinderson",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hinderson/lazyblur/issues"
+  },
+  "homepage": "https://github.com/hinderson/lazyblur#readme"
+}
