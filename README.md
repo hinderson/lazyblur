@@ -1,7 +1,23 @@
 # Lazy Blur
 Progressively load media (images, video) with a blur effect. Loads the media when scrolled into view.
 
+Uses the [StackBlur for JavaScript/Canvas](http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html) library by Mario Klingemann.
+
 # Usage
+
+## JavaScript
+```
+var LazyBlur = require('lazyblur');
+
+var mediaElements = document.querySelectorAll('.progressive-media');
+var lazyBlur = new LazyBlur(mediaElements, {
+    blur: 40
+});
+
+lazyBlur.on('zoomInStart', function (media) {
+    console.log(media + ' has started to zoom!');
+});
+```
 
 ## CSS
 ```
@@ -55,10 +71,10 @@ Progressively load media (images, video) with a blur effect. Loads the media whe
 
 ### Image
 ```
-<div class="progressive-media" data-attributes='{ "srcset": "{{ realImageSrcSet }}", "sizes": "100vw", "alt": "", "data-object-fit": "cover" }'>
+<div class="progressive-media" data-attributes='{ "srcset": "{{ realImageSrcSet }}", "sizes": "100vw", "alt": "" }'>
     <div style="padding-bottom: {{ (realImageHeight / realImageWidth) * 100 }}%;">
     <img src="{{ microSrc }}" crossorigin="anonymous" aria-hidden="true" class="thumb" alt="">
-    <canvas width="{{ realImageWidth }}" height="{{ realImageHeight }}" data-object-fit="cover"></canvas>
+    <canvas width="{{ realImageWidth }}" height="{{ realImageHeight }}"></canvas>
     <noscript>
         <img src="{{ realImageSrc }}" srcset="{{ realImageSrcSet }}" sizes="100vw" alt="">
     </noscript>
@@ -66,10 +82,12 @@ Progressively load media (images, video) with a blur effect. Loads the media whe
 ```
 
 ### Video
+Requires a screenshot from the video to be used for the micro thumbnail.
 ```
-<div class="progressive-media" data-attributes='{ "src": "{{ realVideoSrc }}", "muted" : "", "autoplay": "", "loop": "", "data-object-fit" : "cover" }' data-type="video">
-    <img src="{{ microSrc }}" crossorigin="anonymous" aria-hidden="true" class="thumb" alt="">
-    <canvas width="{{ realVideoWidth }}" height="{{ realVideoHeight }}" data-object-fit="cover"></canvas>
+<div class="progressive-media" data-attributes='{ "src": "{{ realVideoSrc }}", "muted" : "", "autoplay": "", "loop": "" }' data-type="video">
+    <div style="padding-bottom: {{ (realImageHeight / realImageWidth) * 100 }}%;">
+    <img src="{{ screenshotMicroSrc }}" crossorigin="anonymous" aria-hidden="true" class="thumb" alt="">
+    <canvas width="{{ realVideoWidth }}" height="{{ realVideoHeight }}"></canvas>
     <noscript>
         <video src="{{ realVideoSrc }}" muted loop autoplay data-object-fit="cover"></video>
     </noscript>
