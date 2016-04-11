@@ -131,15 +131,18 @@
         var thumb = item.getElementsByTagName('img')[0] || item.getElementsByTagName('video')[0];
         var canvas = item.getElementsByTagName('canvas')[0];
 
-        // Force thumb to trigger onload event
-        thumb.src = thumb.src;
-
-        // Wait for thumb to load completely
-        thumb.onload = function ( ) {
+        var applyBlur = function ( ) {
             canvas.getContext('2d').drawImage(thumb, 0, 0, canvas.width, canvas.height);
             stackblur.canvasRGB(canvas, 0, 0, canvas.width, canvas.height, BLUR_AMOUNT);
             pubsub.publish('placeholderCreated', item);
         };
+
+        // Wait for thumb to load completely
+        if (thumb.complete || thumb.width + thumb.height > 0) {
+            applyBlur();
+        } else {
+            thumb.onload = applyBlur;
+        }
 
         // Add item to unloaded items array
         unloadedItems.push(item);
