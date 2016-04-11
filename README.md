@@ -14,8 +14,8 @@ var lazyBlur = new LazyBlur(mediaElements, {
     blur: 40
 });
 
-lazyBlur.on('zoomInStart', function (media) {
-    console.log(media + ' has started to zoom!');
+lazyBlur.on('mediaLoaded', function (media) {
+    console.log(media + ' has loaded!');
 });
 ```
 
