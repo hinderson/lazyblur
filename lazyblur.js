@@ -128,20 +128,25 @@
     }
 
     function createBlurryPlaceholder (item) {
-        var thumb = item.getElementsByTagName('img')[0] || item.getElementsByTagName('video')[0];
+        var placeholder = item.getElementsByTagName('img')[0] || item.getElementsByTagName('video')[0];
         var canvas = item.getElementsByTagName('canvas')[0];
 
+        // Force reload
+        var placeholderImg = new Image();
+        placeholderImg.src = placeholder.src;
+
+        // Wait for thumb to load completely
         var applyBlur = function ( ) {
-            canvas.getContext('2d').drawImage(thumb, 0, 0, canvas.width, canvas.height);
+            canvas.getContext('2d').drawImage(placeholderImg, 0, 0, canvas.width, canvas.height);
             stackblur.canvasRGB(canvas, 0, 0, canvas.width, canvas.height, BLUR_AMOUNT);
+            item.classList.add('placeholder-loaded');
             pubsub.publish('placeholderCreated', item);
         };
 
-        // Wait for thumb to load completely
-        if (thumb.complete || thumb.width + thumb.height > 0) {
+        if (placeholderImg.complete) {
             applyBlur();
         } else {
-            thumb.onload = applyBlur;
+            placeholderImg.onload = applyBlur;
         }
 
         // Add item to unloaded items array
