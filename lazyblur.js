@@ -133,6 +133,7 @@
 
         // Force reload
         var placeholderImg = new Image();
+        placeholderImg.crossOrigin = 'Anonymous';
         placeholderImg.src = placeholder.src;
 
         // Wait for thumb to load completely
