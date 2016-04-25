@@ -61,16 +61,6 @@
     // Transition event helper
     var transitionEvent = utils.whichTransitionEvent();
 
-    // Performance helpers
-    var hintBrowser = function ( ) {
-        this.style.willChange = 'opacity, visibility';
-    };
-
-    var removeHint = function ( ) {
-        this.removeEventListener(transitionEvent, removeHint);
-        this.style.willChange = 'auto';
-    };
-
     function checkImageVisibility ( ) {
         if (!Object.keys(unloadedItems).length) {
             // We've loaded all images in the document
@@ -104,9 +94,6 @@
         function appendElem ( ) {
             mediaElem.classList.add('media');
 
-            hintBrowser.bind(mediaElem)();
-            mediaElem.addEventListener(transitionEvent, removeHint);
-
             setTimeout(function ( ) {
                 item.classList.remove('loading-media');
                 item.classList.add('media-loaded');
@@ -128,7 +115,7 @@
     }
 
     function createBlurryPlaceholder (item) {
-        var placeholder = item.getElementsByTagName('img')[0] || item.getElementsByTagName('video')[0];
+        var placeholder = item.getElementsByTagName('img')[0];
         var canvas = item.getElementsByTagName('canvas')[0];
 
         // Force reload
