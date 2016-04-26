@@ -92,6 +92,7 @@
         }
 
         function appendElem ( ) {
+            mediaElem.removeEventListener('canplay', appendElem);
             mediaElem.classList.add('media');
 
             setTimeout(function ( ) {
@@ -100,7 +101,7 @@
             }, 100);
 
             item.appendChild(mediaElem);
-            pubsub.publish('mediaLoaded', item);
+            pubsub.publish('mediaLoaded', [item, mediaElem]);
         }
 
         if (type === 'video') {
