@@ -78,7 +78,7 @@
 
     function loadMedia (item) {
         var attributes = JSON.parse(item.getAttribute('data-attributes'));
-        var type = item.getAttribute('data-type') || 'image';
+        var type = (attributes.src || attributes.srcset.split(',')[0].split(' ')[0]).match(/\.(jpg|jpeg|png|gif)$/) ? 'image' : 'video';
 
         // Construct media element
         var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();

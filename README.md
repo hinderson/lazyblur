@@ -84,7 +84,7 @@ lazyBlur.on('mediaLoaded', function (media) {
 ### Video
 Requires a screenshot from the video to be used for the micro thumbnail.
 ```
-<div class="progressive-media" data-attributes='{ "src": "{{ realVideoSrc }}", "muted" : "", "autoplay": "", "loop": "" }' data-type="video">
+<div class="progressive-media" data-attributes='{ "src": "{{ realVideoSrc }}", "muted" : "", "autoplay": "", "loop": "" }'>
     <div style="padding-bottom: {{ (realImageHeight / realImageWidth) * 100 }}%;">
     <img src="{{ screenshotMicroSrc }}" crossorigin="anonymous" aria-hidden="true" class="thumb" alt="">
     <canvas width="{{ realVideoWidth }}" height="{{ realVideoHeight }}"></canvas>
