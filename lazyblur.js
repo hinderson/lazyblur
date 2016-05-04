@@ -92,6 +92,7 @@
         }
 
         function appendElem ( ) {
+            mediaElem.removeEventListener('canplaythrough', appendElem);
             mediaElem.removeEventListener('canplay', appendElem);
             mediaElem.classList.add('media');
 
@@ -105,8 +106,11 @@
         }
 
         if (type === 'video') {
-            mediaElem.load();
+            mediaElem.setAttribute('preload', 'auto');
+            mediaElem.addEventListener('canplaythrough', appendElem);
             mediaElem.addEventListener('canplay', appendElem);
+            mediaElem.load();
+            mediaElem.play();
         } else {
             mediaElem.onload = appendElem;
         }
