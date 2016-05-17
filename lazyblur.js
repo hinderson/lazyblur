@@ -106,12 +106,10 @@
         }
 
         if (type === 'video') {
-            console.log(mediaElem);
             mediaElem.setAttribute('preload', 'auto');
             mediaElem.addEventListener('canplaythrough', appendElem);
             mediaElem.addEventListener('canplay', appendElem);
             mediaElem.load();
-            mediaElem.play();
         } else {
             mediaElem.onload = appendElem;
         }
