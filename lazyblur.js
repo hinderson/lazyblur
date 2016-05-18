@@ -77,7 +77,26 @@
     }
 
     function loadMedia (item) {
+        var attributes = JSON.parse(item.getAttribute('data-attributes'));
+        var type = (attributes.src || attributes.srcset.split(',')[0].split(' ')[0]).match(/\.(jpg|jpeg|png|gif)$/) ? 'image' : 'video';
+
+        var makeMediaElem = function (type) {
+            // Construct media element
+            var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();
+
+            // Add loading class
+            item.classList.add('loading-media');
+
+            // Construct attributes
+            for (var prop in attributes) {
+                mediaElem.setAttribute(prop, attributes[prop]);
+            }
+
+            return mediaElem;
+        };
+
         var appendElem = function ( ) {
+            var mediaElem = this;
             mediaElem.removeEventListener('canplaythrough', appendElem);
             mediaElem.removeEventListener('canplay', appendElem);
             mediaElem.classList.add('media');
@@ -91,27 +110,31 @@
             pubsub.publish('mediaLoaded', [item, mediaElem]);
         };
 
-        var attributes = JSON.parse(item.getAttribute('data-attributes'));
-        var type = (attributes.src || attributes.srcset.split(',')[0].split(' ')[0]).match(/\.(jpg|jpeg|png|gif)$/) ? 'image' : 'video';
-
-        // Construct media element
-        var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();
-
-        // Add loading class
-        item.classList.add('loading-media');
-
-        // Construct attributes
-        for (var prop in attributes) {
-            mediaElem.setAttribute(prop, attributes[prop]);
-        }
-
+        var mediaElem;
         if (type === 'video') {
-            mediaElem.setAttribute('preload', 'auto');
-            mediaElem.addEventListener('canplaythrough', appendElem);
-            mediaElem.addEventListener('canplay', appendElem);
-            mediaElem.load();
+            if (utils.isAutoplaySupported()) {
+                mediaElem = makeMediaElem('video');
+                mediaElem.setAttribute('preload', 'auto');
+                mediaElem.addEventListener('canplaythrough', appendElem.bind(mediaElem));
+                mediaElem.addEventListener('canplay', appendElem.bind(mediaElem));
+                mediaElem.load();
+            } else {
+                // Device doesn't support autoplay
+                // Append video fallback image
+                if (item.hasAttribute('data-video-fallback')) {
+                    mediaElem = makeMediaElem('image');
+                    mediaElem.classList.add('video-fallback');
+                    mediaElem.src = item.getAttribute('data-video-fallback');
+                    mediaElem.onload = appendElem.bind(mediaElem);
+                } else {
+                    // No fallback image is provided, just append the video
+                    mediaElem = makeMediaElem('video');
+                    appendElem.call(mediaElem);
+                }
+            }
         } else {
-            mediaElem.onload = appendElem;
+            mediaElem = makeMediaElem('image');
+            mediaElem.onload = appendElem.bind(mediaElem);
         }
 
         // Remove item from unloaded items array
