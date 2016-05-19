@@ -97,8 +97,6 @@
 
         var appendElem = function ( ) {
             var mediaElem = this;
-            mediaElem.removeEventListener('canplaythrough', appendElem);
-            mediaElem.removeEventListener('canplay', appendElem);
             mediaElem.classList.add('media');
 
             setTimeout(function ( ) {
@@ -114,9 +112,7 @@
         if (type === 'video') {
             if (utils.isAutoplaySupported()) {
                 mediaElem = makeMediaElem('video');
-                mediaElem.setAttribute('preload', 'auto');
-                mediaElem.addEventListener('canplaythrough', appendElem.bind(mediaElem));
-                mediaElem.addEventListener('canplay', appendElem.bind(mediaElem));
+                utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
                 mediaElem.load();
             } else {
                 // Device doesn't support autoplay
