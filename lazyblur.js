@@ -110,24 +110,26 @@
 
         var mediaElem;
         if (type === 'video') {
-            if (utils.isAutoplaySupported()) {
-                mediaElem = makeMediaElem('video');
-                utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
-                mediaElem.load();
-            } else {
-                // Device doesn't support autoplay
-                // Append video fallback image
-                if (item.hasAttribute('data-video-fallback')) {
-                    mediaElem = makeMediaElem('image');
-                    mediaElem.classList.add('video-fallback');
-                    mediaElem.src = item.getAttribute('data-video-fallback');
-                    mediaElem.onload = appendElem.bind(mediaElem);
-                } else {
-                    // No fallback image is provided, just append the video
+            utils.isAutoplaySupported(function (supported) {
+                if (supported) {
                     mediaElem = makeMediaElem('video');
-                    appendElem.call(mediaElem);
+                    utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
+                    mediaElem.load();
+                } else {
+                    // Device doesn't support autoplay
+                    // Append video fallback image
+                    if (item.hasAttribute('data-video-fallback')) {
+                        mediaElem = makeMediaElem('image');
+                        mediaElem.classList.add('video-fallback');
+                        mediaElem.src = item.getAttribute('data-video-fallback');
+                        mediaElem.onload = appendElem.bind(mediaElem);
+                    } else {
+                        // No fallback image is provided, just append the video
+                        mediaElem = makeMediaElem('video');
+                        appendElem.call(mediaElem);
+                    }
                 }
-            }
+            });
         } else {
             mediaElem = makeMediaElem('image');
             mediaElem.onload = appendElem.bind(mediaElem);

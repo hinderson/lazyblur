@@ -264,10 +264,10 @@
         	return window.pageYOffset;
         },
 
-        isAutoplaySupported: function ( ) {
+        isAutoplaySupported: function (callback) {
             function dispose (video) {
                 video.pause();
-                video.src ="";
+                video.src = '';
                 video.load();
             }
 
@@ -289,18 +289,18 @@
                     if (video.playing) {
                         sessionStorage.autoplaySupported = 'true';
                         dispose(video);
-                        return true;
+                        callback(true);
                     } else {
                         sessionStorage.autoplaySupported = 'false';
                         dispose(video);
-                        return false;
+                        callback(false);
                     }
                 };
             } else {
                 if (sessionStorage.autoplaySupported === 'true') {
-                    return true;
+                    callback(true);
                 } else {
-                    return false;
+                    callback(false);
                 }
             }
         },
