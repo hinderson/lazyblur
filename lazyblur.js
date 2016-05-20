@@ -11,9 +11,10 @@
         define([
             './utils',
             './pubsub',
-            './vendor/stackblur'
-        ], function(utils, pubsub, stackblur) {
-            return factory(window, utils, pubsub, stackblur);
+            './vendor/stackblur',
+            './vendor/picturefill'
+        ], function(utils, pubsub, stackblur, picturefill) {
+            return factory(window, utils, pubsub, stackblur, picturefill);
         });
     } else if (typeof exports == 'object') {
         // CommonJS
@@ -21,11 +22,12 @@
             window,
             require('./utils'),
             require('./pubsub'),
-            require('./vendor/stackblur')
+            require('./vendor/stackblur'),
+            require('./vendor/picturefill')
         );
     }
 
-}(window, function factory (window, utils, pubsub, stackblur) {
+}(window, function factory (window, utils, pubsub, stackblur, picturefill) {
     'use strict';
 
     // Constants
@@ -132,6 +134,7 @@
             });
         } else {
             mediaElem = makeMediaElem('image');
+            picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
             mediaElem.onload = appendElem.bind(mediaElem);
         }
 
