@@ -63,6 +63,23 @@
     // Transition event helper
     var transitionEvent = utils.whichTransitionEvent();
 
+    // Support helpers
+    var supportsObjectFit = 'objectFit' in document.documentElement.style;
+
+    // Add a background-image fallback for object-fit
+    // Must be called after Picturefill
+    function polyfillObjectFit (img, container) {
+        if (supportsObjectFit) { return; }
+
+        utils.requestAnimFrame.call(window, function ( ) {
+            // Get current image src: Edge only supports 'currentSrc' for getting the current image src ('src' returns value DOM value)
+            var imageSrc = img.currentSrc || img.src;
+            img.style.display = 'none';
+            container.style.backgroundSize = img.getAttribute('data-object-fit');
+            container.style.backgroundImage = 'url(' + imageSrc + ')';
+        });
+    }
+
     function checkImageVisibility ( ) {
         if (!Object.keys(unloadedItems).length) {
             // We've loaded all images in the document
@@ -134,8 +151,17 @@
             });
         } else {
             mediaElem = makeMediaElem('image');
-            picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
-            mediaElem.onload = appendElem.bind(mediaElem);
+
+            // Does the browser support srcset?
+            if ('srcset' in mediaElem) {
+                mediaElem.onload = appendElem.bind(mediaElem);
+            } else {
+                appendElem.call(mediaElem);
+                picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
+                if (mediaElem.hasAttribute('data-object-fit')) {
+                    polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
+                }
+            }
         }
 
         // Remove item from unloaded items array
