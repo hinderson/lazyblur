@@ -132,6 +132,7 @@
             utils.isAutoplaySupported(function (supported) {
                 if (supported) {
                     mediaElem = makeMediaElem('video');
+                    mediaElem.preload = 'auto';
                     utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
                     mediaElem.load();
                 } else {
