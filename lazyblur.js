@@ -109,40 +109,49 @@
             pubsub.publish('mediaLoaded', [item, mediaElem]);
         };
 
-        var makeMediaElem = function (type, attributes) {
+        var makeImageElem = function (attributes) {
+            var mediaElem = new Image();
+
+            // Add loading class
+            item.classList.add('loading-media');
+
+            // Does the browser support srcset?
+            if ('srcset' in mediaElem || !attributes.hasOwnProperty('srcset')) {
+                mediaElem.onload = appendElem.bind(mediaElem);
+            } else {
+                appendElem.call(mediaElem);
+                picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
+                if (mediaElem.hasAttribute('data-object-fit')) {
+                    polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
+                }
+            }
+
+            // Construct attributes
+            for (var prop in attributes) {
+                mediaElem.setAttribute(prop, attributes[prop]);
+            }
+
+            return mediaElem;
+        };
+
+        var makeVideoElem = function (attributes) {
             // Construct media element
-            var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();
+            var mediaElem = document.createElement('VIDEO');
 
             // Add loading class
             item.classList.add('loading-media');
 
             // Event listeners
-            if (type === 'video') {
-                utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
-            } else {
-                // Does the browser support srcset?
-                if ('srcset' in mediaElem || !attributes.hasOwnProperty('srcset')) {
-                    mediaElem.onload = appendElem.bind(mediaElem);
-                } else {
-                    appendElem.call(mediaElem);
-                    picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
-                    if (mediaElem.hasAttribute('data-object-fit')) {
-                        polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
-                    }
-                }
-            }
+            utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
 
             // Construct attributes
-            // This starts the onload process for most media types
             for (var prop in attributes) {
                 mediaElem.setAttribute(prop, attributes[prop]);
             }
 
             // Trigger video canplay event
-            if (type === 'video') {
-                mediaElem.preload = 'auto';
-                mediaElem.load();
-            }
+            mediaElem.preload = 'auto';
+            mediaElem.load();
 
             return mediaElem;
         };
@@ -153,7 +162,7 @@
         if (type === 'video') {
             utils.isAutoplaySupported(function (supported) {
                 if (supported || !item.hasAttribute('data-video-fallback')) {
-                    makeMediaElem('video', attributes);
+                    makeVideoElem(attributes);
                 } else {
                     // Device doesn't support autoplay
                     // Delete video attributes
@@ -164,12 +173,12 @@
 
                     // Append video fallback image
                     attributes.src = item.getAttribute('data-video-fallback');
-                    var mediaElem = makeMediaElem('image', attributes);
+                    var mediaElem = makeImageElem(attributes);
                     mediaElem.classList.add('video-fallback');
                 }
             });
         } else {
-            makeMediaElem('image', attributes);
+            makeImageElem(attributes);
         }
 
         // Remove item from unloaded items array
