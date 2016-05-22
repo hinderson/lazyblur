@@ -96,24 +96,6 @@
     }
 
     function loadMedia (item) {
-        var attributes = JSON.parse(item.getAttribute('data-attributes'));
-        var type = (attributes.src || attributes.srcset.split(',')[0].split(' ')[0]).match(/\.(jpg|jpeg|png|gif)$/) ? 'image' : 'video';
-
-        var makeMediaElem = function (type) {
-            // Construct media element
-            var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();
-
-            // Add loading class
-            item.classList.add('loading-media');
-
-            // Construct attributes
-            for (var prop in attributes) {
-                mediaElem.setAttribute(prop, attributes[prop]);
-            }
-
-            return mediaElem;
-        };
-
         var appendElem = function ( ) {
             var mediaElem = this;
             mediaElem.classList.add('media');
@@ -127,42 +109,67 @@
             pubsub.publish('mediaLoaded', [item, mediaElem]);
         };
 
-        var mediaElem;
+        var makeMediaElem = function (type, attributes) {
+            // Construct media element
+            var mediaElem = type === 'video' ? document.createElement('VIDEO') : new Image();
+
+            // Add loading class
+            item.classList.add('loading-media');
+
+            // Event listeners
+            if (type === 'video') {
+                utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
+            } else {
+                // Does the browser support srcset?
+                if ('srcset' in mediaElem || !attributes.hasOwnProperty('srcset')) {
+                    mediaElem.onload = appendElem.bind(mediaElem);
+                } else {
+                    appendElem.call(mediaElem);
+                    picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
+                    if (mediaElem.hasAttribute('data-object-fit')) {
+                        polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
+                    }
+                }
+            }
+
+            // Construct attributes
+            // This starts the onload process for most media types
+            for (var prop in attributes) {
+                mediaElem.setAttribute(prop, attributes[prop]);
+            }
+
+            // Trigger video canplay event
+            if (type === 'video') {
+                mediaElem.preload = 'auto';
+                mediaElem.load();
+            }
+
+            return mediaElem;
+        };
+
+        var attributes = JSON.parse(item.getAttribute('data-attributes'));
+        var type = (attributes.src || attributes.srcset.split(',')[0].split(' ')[0]).match(/\.(jpg|jpeg|png|gif)$/) ? 'image' : 'video';
+
         if (type === 'video') {
             utils.isAutoplaySupported(function (supported) {
-                if (supported) {
-                    mediaElem = makeMediaElem('video');
-                    mediaElem.preload = 'auto';
-                    utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
-                    mediaElem.load();
+                if (supported || !item.hasAttribute('data-video-fallback')) {
+                    makeMediaElem('video', attributes);
                 } else {
                     // Device doesn't support autoplay
+                    // Delete video attributes
+                    delete attributes.loop;
+                    delete attributes.muted;
+                    delete attributes.autoplay;
+                    delete attributes['webkit-playsinline'];
+
                     // Append video fallback image
-                    if (item.hasAttribute('data-video-fallback')) {
-                        mediaElem = makeMediaElem('image');
-                        mediaElem.classList.add('video-fallback');
-                        mediaElem.src = item.getAttribute('data-video-fallback');
-                        mediaElem.onload = appendElem.bind(mediaElem);
-                    } else {
-                        // No fallback image is provided, just append the video
-                        mediaElem = makeMediaElem('video');
-                        appendElem.call(mediaElem);
-                    }
+                    attributes.src = item.getAttribute('data-video-fallback');
+                    var mediaElem = makeMediaElem('image', attributes);
+                    mediaElem.classList.add('video-fallback');
                 }
             });
         } else {
-            mediaElem = makeMediaElem('image');
-
-            // Does the browser support srcset?
-            if ('srcset' in mediaElem) {
-                mediaElem.onload = appendElem.bind(mediaElem);
-            } else {
-                appendElem.call(mediaElem);
-                picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
-                if (mediaElem.hasAttribute('data-object-fit')) {
-                    polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
-                }
-            }
+            makeMediaElem('image', attributes);
         }
 
         // Remove item from unloaded items array
