@@ -112,23 +112,30 @@
         var makeImageElem = function (attributes) {
             var mediaElem = new Image();
 
+            var constructAttributes = function ( ) {
+                for (var prop in attributes) {
+                    mediaElem.setAttribute(prop, attributes[prop]);
+                }
+            };
+
             // Add loading class
             item.classList.add('loading-media');
 
             // Does the browser support srcset?
+            // We either have srcset and native support for it, or just a regular src attribute
             if ('srcset' in mediaElem || !attributes.hasOwnProperty('srcset')) {
+                console.log('We either have srcset and native support for it, or just a regular src attribute');
                 mediaElem.onload = appendElem.bind(mediaElem);
+                constructAttributes();
             } else {
+                // We have only srcset, and we need to polyfill
+                console.log('We have srcset, and we need to polyfill');
+                constructAttributes();
                 appendElem.call(mediaElem);
                 picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
-                if (mediaElem.hasAttribute('data-object-fit')) {
+                if (attributes.hasOwnProperty('data-object-fit')) {
                     polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
                 }
-            }
-
-            // Construct attributes
-            for (var prop in attributes) {
-                mediaElem.setAttribute(prop, attributes[prop]);
             }
 
             return mediaElem;
