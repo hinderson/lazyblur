@@ -168,8 +168,10 @@
             utils.isAutoplaySupported(function (supported) {
                 if (supported || !item.hasAttribute('data-video-fallback')) {
                     var videoElem = makeVideoElem(attributes);
+
                     if (!supported) {
                         videoElem.style.pointerEvents = 'none';
+                        appendElem.call(videoElem);
                     }
                 } else {
                     // Device doesn't support autoplay
