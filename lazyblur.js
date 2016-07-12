@@ -167,7 +167,10 @@
         if (type === 'video') {
             utils.isAutoplaySupported(function (supported) {
                 if (supported || !item.hasAttribute('data-video-fallback')) {
-                    makeVideoElem(attributes);
+                    var videoElem = makeVideoElem(attributes);
+                    if (!supported) {
+                        videoElem.style.pointerEvents = 'none';
+                    }
                 } else {
                     // Device doesn't support autoplay
                     // Delete video attributes
