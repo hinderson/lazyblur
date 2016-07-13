@@ -168,7 +168,6 @@
             utils.isAutoplaySupported(function (supported) {
                 if (supported || !item.hasAttribute('data-video-fallback')) {
                     var videoElem = makeVideoElem(attributes);
-
                     if (!supported) {
                         videoElem.style.pointerEvents = 'none';
                         appendElem.call(videoElem);
@@ -184,6 +183,7 @@
                     // Append video fallback image
                     attributes.src = item.getAttribute('data-video-fallback');
                     var mediaElem = makeImageElem(attributes);
+                    item.classList.add('using-video-fallback');
                     mediaElem.classList.add('video-fallback');
                 }
             });
