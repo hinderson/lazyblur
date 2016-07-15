@@ -146,9 +146,6 @@
             // Add loading class
             item.classList.add('loading-media');
 
-            // Event listeners
-            utils.once(mediaElem, 'canplay', appendElem.bind(mediaElem));
-
             // Construct attributes
             for (var prop in attributes) {
                 mediaElem.setAttribute(prop, attributes[prop]);
@@ -157,6 +154,9 @@
             // Trigger video canplay event
             mediaElem.preload = 'auto';
             mediaElem.load();
+            mediaElem.play();
+
+            appendElem.call(mediaElem);
 
             return mediaElem;
         };

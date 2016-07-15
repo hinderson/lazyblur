@@ -264,6 +264,17 @@
         	return window.pageYOffset;
         },
 
+        isLocalStorageNameSupported: function ( ) {
+            var testKey = 'test', storage = window.sessionStorage;
+            try {
+                storage.setItem(testKey, '1');
+                storage.removeItem(testKey);
+                return true;
+            } catch (error) {
+                return false;
+            }
+        },
+
         isAutoplaySupported: function (callback) {
             function dispose (video) {
                 video.pause();
@@ -271,7 +282,11 @@
                 video.load();
             }
 
-            if (!sessionStorage.autoplaySupported) {
+            function check (sessionStorageSupported) {
+                if (sessionStorageSupported && sessionStorage.autoplaySupported === 'true') {
+                    return callback(true);
+                }
+
                 // Create video element to test autoplay
                 var video = document.createElement('video');
                 video.autoplay = true;
@@ -287,24 +302,27 @@
 
                 video.oncanplay = function ( ) {
                     if (video.playing) {
-                        sessionStorage.autoplaySupported = 'true';
+                        if (sessionStorageSupported) {
+                            sessionStorage.autoplaySupported = 'true';
+                        }
                         dispose(video);
                         callback(true);
                     } else {
-                        sessionStorage.autoplaySupported = 'false';
+                        if (sessionStorageSupported) {
+                            sessionStorage.autoplaySupported = 'false';
+                        }
                         dispose(video);
                         callback(false);
                     }
                 };
+            }
+
+            if (utils.isLocalStorageNameSupported()) {
+                check(true);
             } else {
-                if (sessionStorage.autoplaySupported === 'true') {
-                    callback(true);
-                } else {
-                    callback(false);
-                }
+                check(false);
             }
         },
-
     };
 
     // Expose to interface
