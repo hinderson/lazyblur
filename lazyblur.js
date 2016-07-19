@@ -96,40 +96,34 @@
     }
 
     function loadMedia (item) {
-        var appendElem = function ( ) {
+        var showMedia = function ( ) {
             var mediaElem = this;
-            mediaElem.classList.add('media');
 
-            setTimeout(function ( ) {
-                item.classList.remove('loading-media');
-                item.classList.add('media-loaded');
-            }, 100);
+            item.classList.remove('loading-media');
+            item.classList.add('media-loaded');
 
-            item.appendChild(mediaElem);
             pubsub.publish('mediaLoaded', [item, mediaElem]);
         };
 
         var makeImageElem = function (attributes) {
             var mediaElem = new Image();
+            mediaElem.classList.add('media');
 
-            var constructAttributes = function ( ) {
-                for (var prop in attributes) {
-                    mediaElem.setAttribute(prop, attributes[prop]);
-                }
+            var constructAttributes = function (prop) {
+                mediaElem.setAttribute(prop, attributes[prop]);
             };
 
-            // Add loading class
-            item.classList.add('loading-media');
+            item.appendChild(mediaElem);
 
             // Does the browser support srcset?
             // We either have srcset and native support for it, or just a regular src attribute
             if ('srcset' in mediaElem || !attributes.hasOwnProperty('srcset')) {
-                mediaElem.onload = appendElem.bind(mediaElem);
-                constructAttributes();
+                mediaElem.onload = showMedia.bind(mediaElem);
+                Object.keys(attributes).forEach(constructAttributes);
             } else {
                 // We have only srcset, and we need to polyfill
-                constructAttributes();
-                appendElem.call(mediaElem);
+                Object.keys(attributes).forEach(constructAttributes);
+                showMedia.call(mediaElem);
                 picturefill({ elements: [ mediaElem ] }); // Polyfill srcset images
                 if (attributes.hasOwnProperty('data-object-fit')) {
                     polyfillObjectFit(mediaElem, item); // Polyfill object-fit images
@@ -141,22 +135,22 @@
 
         var makeVideoElem = function (attributes) {
             // Construct media element
-            var mediaElem = document.createElement('VIDEO');
+            var mediaElem = document.createElement('video');
+            mediaElem.classList.add('media');
 
-            // Add loading class
-            item.classList.add('loading-media');
+            // Event listeners
+            utils.once(mediaElem, 'playing', showMedia);
 
             // Construct attributes
-            for (var prop in attributes) {
+            Object.keys(attributes).forEach(function (prop) {
                 mediaElem.setAttribute(prop, attributes[prop]);
-            }
+            });
 
-            // Trigger video canplay event
             mediaElem.preload = 'auto';
+            mediaElem.autoplay = true;
             mediaElem.load();
-            mediaElem.play();
 
-            appendElem.call(mediaElem);
+            item.appendChild(mediaElem);
 
             return mediaElem;
         };
@@ -164,6 +158,10 @@
         var attributes = JSON.parse(item.getAttribute('data-attributes'));
         var type = (attributes.src || attributes.srcset.split(',')[0].split(' ')[0]).match(/\.(jpg|jpeg|png|gif)$/) ? 'image' : 'video';
 
+        // Add loading class
+        item.classList.add('loading-media');
+
+        // Try to load media element
         if (type === 'video') {
             utils.isAutoplaySupported(function (supported) {
                 if (supported || !item.hasAttribute('data-video-fallback')) {
@@ -186,7 +184,7 @@
                     item.classList.add('using-video-fallback');
                     mediaElem.classList.add('video-fallback');
                 }
-            });
+            }, 500);
         } else {
             makeImageElem(attributes);
         }
@@ -227,8 +225,8 @@
         window.removeEventListener('scroll', scrollEvent);
     }
 
-    var lazyBlur = function (elems, options) {
-        if (!elems) return;
+    var lazyBlur = function (query, options) {
+        if (!query) return;
 
         if (options) {
             BLUR_AMOUNT = options.blur;
@@ -240,14 +238,11 @@
         // Export functions
         this.check = checkImageVisibility;
 
-        // Accepts both a single node and a NodeList
-        if (elems.length) {
-            utils.forEach(elems, function (index, elem) {
-                createBlurryPlaceholder(elem);
-            });
-        } else {
-            createBlurryPlaceholder(elems);
-        }
+        // Instantiate all provided queries
+        var elems = (typeof query === 'string' ? document.querySelectorAll(query) : query);
+        utils.forEach(elems, function (index, elem) {
+            createBlurryPlaceholder(elem);
+        });
 
         // Do an initial check of image visibility
         checkImageVisibility();
