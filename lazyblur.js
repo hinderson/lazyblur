@@ -168,7 +168,7 @@
                     var videoElem = makeVideoElem(attributes);
                     if (!supported) {
                         videoElem.style.pointerEvents = 'none';
-                        appendElem.call(videoElem);
+                        showMedia.call(videoElem);
                     }
                 } else {
                     // Device doesn't support autoplay
