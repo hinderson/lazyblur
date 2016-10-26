@@ -60,9 +60,6 @@
     window.addEventListener('resize', resizeEvent);
     window.addEventListener('scroll', scrollEvent);
 
-    // Transition event helper
-    var transitionEvent = utils.whichTransitionEvent();
-
     // Support helpers
     var supportsObjectFit = 'objectFit' in document.documentElement.style;
 
