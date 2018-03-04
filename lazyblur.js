@@ -36,32 +36,9 @@
     // Unloaded items
     var unloadedItems = [];
 
-    // Cached values
-    var cache = {
-        ticking: false,
-        lastScrollY: window.pageYOffset,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight
-    };
-
-    // Window events
-    var resizeEvent = utils.debounce(function ( ) {
-    	cache.viewportWidth = window.innerWidth;
-    	cache.viewportHeight = window.innerHeight;
-        cache.lastScrollY = window.pageYOffset;
-
-        checkImageVisibility();
-    }, 250);
-
-    var scrollEvent = utils.throttle(function ( ) {
-    	checkImageVisibility();
-    }, 500);
-
-    window.addEventListener('resize', resizeEvent);
-    window.addEventListener('scroll', scrollEvent);
-
     // Support helpers
     var supportsObjectFit = 'objectFit' in document.documentElement.style;
+    var supportsIntersectionObserver = 'IntersectionObserver' in window;
 
     // Add a background-image fallback for object-fit
     // Must be called after Picturefill
@@ -213,8 +190,7 @@
             placeholderImg.onload = applyBlur;
         }
 
-        // Add item to unloaded items array
-        unloadedItems.push(item);
+        return item;
     }
 
     function destroy ( ) {
@@ -238,11 +214,39 @@
         // Instantiate all provided queries
         var elems = (typeof query === 'string' ? document.querySelectorAll(query) : query);
         utils.forEach(elems, function (index, elem) {
-            createBlurryPlaceholder(elem);
+            var unloadedItem = createBlurryPlaceholder(elem);
+            unloadedItems.push(unloadedItem);
         });
 
-        // Do an initial check of image visibility
-        checkImageVisibility();
+        // Check for viewport visibility
+        if (supportsIntersectionObserver) {
+            var config = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.5
+            };
+
+            var observer = new IntersectionObserver(function (changes, observer) {
+                changes.forEach(function (change) {
+                    if (change.intersectionRatio > 0) {
+                        // Stop watching and load the image
+                        loadMedia(change.target);
+                        observer.unobserve(change.target);
+                    }
+                });
+            }, config);
+
+            utils.forEach(unloadedItems, function (index, item) {
+                observer.observe(item);
+            });
+        } else {
+            // Do an initial check of image visibility
+            checkImageVisibility();
+
+            // Fallback to event listeners when Intersection Observers isn't supported
+            window.addEventListener('resize', checkImageVisibility);
+            window.addEventListener('scroll', checkImageVisibility);
+        }
     };
 
 	// Expose to interface
