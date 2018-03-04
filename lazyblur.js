@@ -108,25 +108,31 @@
         };
 
         var makeVideoElem = function (attributes) {
-            // Construct media element
-            var mediaElem = document.createElement('video');
-            mediaElem.classList.add('media');
-
-            // Event listeners
-            utils.once(mediaElem, 'playing', showMedia);
+            var video = document.createElement('video');
+            video.className = 'media';
+            video.autoplay = true;
 
             // Construct attributes
             Object.keys(attributes).forEach(function (prop) {
-                mediaElem.setAttribute(prop, attributes[prop]);
+                video.setAttribute(prop, attributes[prop]);
             });
 
-            mediaElem.preload = 'auto';
-            mediaElem.autoplay = true;
-            mediaElem.load();
+            return video;
+        };
 
-            item.appendChild(mediaElem);
+        var fallbackVideoElem = function ( ) {
+            // Device doesn't support autoplay
+            // Delete video attributes
+            delete attributes.loop;
+            delete attributes.muted;
+            delete attributes.autoplay;
+            delete attributes['webkit-playsinline'];
 
-            return mediaElem;
+            // Append video fallback image
+            attributes.src = item.getAttribute('data-video-fallback');
+            var mediaElem = makeImageElem(attributes);
+            item.classList.add('using-video-fallback');
+            mediaElem.classList.add('video-fallback');
         };
 
         var attributes = JSON.parse(item.getAttribute('data-attributes'));
@@ -137,28 +143,17 @@
 
         // Try to load media element
         if (type === 'video') {
-            utils.isAutoplaySupported(function (supported) {
-                if (supported || !item.hasAttribute('data-video-fallback')) {
-                    var videoElem = makeVideoElem(attributes);
-                    if (!supported) {
-                        videoElem.style.pointerEvents = 'none';
-                        showMedia.call(videoElem);
-                    }
-                } else {
-                    // Device doesn't support autoplay
-                    // Delete video attributes
-                    delete attributes.loop;
-                    delete attributes.muted;
-                    delete attributes.autoplay;
-                    delete attributes['webkit-playsinline'];
+            var video = makeVideoElem(attributes);
+            var videoPromise = video.play();
 
-                    // Append video fallback image
-                    attributes.src = item.getAttribute('data-video-fallback');
-                    var mediaElem = makeImageElem(attributes);
-                    item.classList.add('using-video-fallback');
-                    mediaElem.classList.add('video-fallback');
-                }
-            }, 500);
+            if (videoPromise instanceof Promise) {
+                videoPromise.then(function () {
+                    item.appendChild(video);
+                    showMedia.call(video);
+                }).catch(fallbackVideoElem);
+            } else {
+                fallbackVideoElem();
+            }
         } else {
             makeImageElem(attributes);
         }
@@ -223,7 +218,7 @@
             var config = {
                 root: null,
                 rootMargin: '0px',
-                threshold: options['threshold'] || 0.5
+                threshold: options['threshold'] || 0.1
             };
 
             var observer = new IntersectionObserver(function (changes, observer) {
