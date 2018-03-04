@@ -223,7 +223,7 @@
             var config = {
                 root: null,
                 rootMargin: '0px',
-                threshold: 0.5
+                threshold: options['threshold'] || 0.5
             };
 
             var observer = new IntersectionObserver(function (changes, observer) {
