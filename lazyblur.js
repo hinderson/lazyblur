@@ -146,7 +146,7 @@
             var video = makeVideoElem(attributes);
             var videoPromise = video.play();
 
-            if (videoPromise instanceof Promise) {
+            if (videoPromise !== undefined) {
                 videoPromise.then(function () {
                     item.appendChild(video);
                     showMedia.call(video);
