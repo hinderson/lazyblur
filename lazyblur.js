@@ -55,6 +55,8 @@
     }
 
     function checkImageVisibility ( ) {
+        if (supportsIntersectionObserver) return;
+
         if (!Object.keys(unloadedItems).length) {
             // We've loaded all images in the document
             return destroy();
@@ -70,6 +72,9 @@
     }
 
     function loadMedia (item) {
+        // Remove item from unloaded items array
+        delete unloadedItems[unloadedItems.indexOf(item)];
+
         var showMedia = function ( ) {
             var mediaElem = this;
 
@@ -144,6 +149,7 @@
         // Try to load media element
         if (type === 'video') {
             var video = makeVideoElem(attributes);
+            video.muted = true;
             var videoPromise = video.play();
 
             if (videoPromise !== undefined) {
@@ -157,9 +163,6 @@
         } else {
             makeImageElem(attributes);
         }
-
-        // Remove item from unloaded items array
-        delete unloadedItems[unloadedItems.indexOf(item)];
     }
 
     function createBlurryPlaceholder (item) {
@@ -218,22 +221,29 @@
             var config = {
                 root: null,
                 rootMargin: '0px',
-                threshold: options['threshold'] || 0.1
+                threshold: options['threshold'] || 0.05
             };
 
             var observer = new IntersectionObserver(function (changes, observer) {
                 changes.forEach(function (change) {
                     if (change.intersectionRatio > 0) {
                         // Stop watching and load the image
-                        loadMedia(change.target);
                         observer.unobserve(change.target);
+                        loadMedia(change.target);
                     }
                 });
             }, config);
 
-            utils.forEach(unloadedItems, function (index, item) {
-                observer.observe(item);
-            });
+            if (Object.keys(unloadedItems).length) {
+                utils.forEach(unloadedItems, function (index, item) {
+                    if (item) {
+                        observer.observe(item);
+                    }
+                });
+            } else {
+                observer.disconnect();
+                destroy();
+            }
         } else {
             // Do an initial check of image visibility
             checkImageVisibility();
